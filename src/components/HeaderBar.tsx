@@ -24,7 +24,7 @@ export default function HeaderBar() {
         {uid ? (
           <>
             <button className="ghost" onClick={() => manualSave('manual')} disabled={!heroId || !!conflict}>
-              Save
+              Save Now
             </button>
             <button className="ghost" onClick={() => logout()}>Sign out</button>
           </>

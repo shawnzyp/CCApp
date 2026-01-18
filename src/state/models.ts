@@ -54,6 +54,8 @@ export type GearItem = {
   spBonus?: number;
 };
 
+export type ReputationMeters = Record<'public'|'government'|'omni'|'pfv'|'greyline'|'conclave', number>;
+
 export type HeroDoc = {
   meta: {
     heroId: string;
@@ -102,6 +104,8 @@ export type HeroDoc = {
     capUsed: boolean;
     conditions: Record<string, boolean>;
     initiativeBonus: number;
+    initiative: number;
+    round: number;
   };
 
   resonance: {
@@ -112,6 +116,7 @@ export type HeroDoc = {
   };
 
   powers: PowerCard[];
+  signatures: PowerCard[];
   gear: {
     credits: number;
     inventory: GearItem[];
@@ -122,8 +127,8 @@ export type HeroDoc = {
     backstory: string;
     notes: string;
     prompts: Record<string, string>;
-    reputation: Record<'public'|'government'|'omni'|'pfv'|'greyline'|'conclave', number>;
   };
+  reputation: ReputationMeters;
 
   ui: {
     editLock: boolean;

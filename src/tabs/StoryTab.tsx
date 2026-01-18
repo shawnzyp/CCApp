@@ -17,7 +17,7 @@ export default function StoryTab() {
     scheduleCloudPush();
   };
 
-  const repKeys = Object.keys(doc.story.reputation) as Array<keyof typeof doc.story.reputation>;
+  const repKeys = Object.keys(doc.reputation) as Array<keyof typeof doc.reputation>;
 
   const repClamp = (v: number) => Math.max(0, Math.min(400, v));
 
@@ -26,6 +26,7 @@ export default function StoryTab() {
       ...d,
       combat: {
         ...d.combat,
+        round: (d.combat.round ?? 1) + 1,
         sp: { ...d.combat.sp, current: d.combat.sp.max + d.combat.sp.temp }
       }
     })),
@@ -64,7 +65,7 @@ export default function StoryTab() {
       <div className="panel">
         <div style={{ fontWeight: 800, marginBottom: 8 }}>Quick Actions</div>
         <div className="row" style={{ flexWrap: 'wrap' }}>
-          <button className="ghost" onClick={quick.startRound}>Start Combat Round (refill SP)</button>
+          <button className="ghost" onClick={quick.startRound}>Next Combat Round (refill SP)</button>
           <button className="ghost" onClick={quick.shortRest}>Short Rest Reset</button>
           <button className="primary" onClick={quick.longRest}>Long Rest</button>
           <button className="ghost" onClick={quick.clearConditions}>Clear Conditions</button>
@@ -187,14 +188,14 @@ export default function StoryTab() {
             <div className="row" style={{ justifyContent: 'space-between' }}>
               <div style={{ fontWeight: 700 }}>{k.toUpperCase()}</div>
               <div className="row">
-                <button className="ghost" onClick={() => update(d => ({ ...d, story: { ...d.story, reputation: { ...d.story.reputation, [k]: repClamp(d.story.reputation[k] - 10) } } }))}>-10</button>
-                <button className="ghost" onClick={() => update(d => ({ ...d, story: { ...d.story, reputation: { ...d.story.reputation, [k]: repClamp(d.story.reputation[k] + 10) } } }))}>+10</button>
-              </div>
+              <button className="ghost" onClick={() => update(d => ({ ...d, reputation: { ...d.reputation, [k]: repClamp(d.reputation[k] - 10) } }))}>-10</button>
+              <button className="ghost" onClick={() => update(d => ({ ...d, reputation: { ...d.reputation, [k]: repClamp(d.reputation[k] + 10) } }))}>+10</button>
             </div>
-            <input type="range" min={0} max={400} value={doc.story.reputation[k]} onChange={e => update(d => ({ ...d, story: { ...d.story, reputation: { ...d.story.reputation, [k]: repClamp(Number(e.target.value || 0)) } } }))} />
-            <div className="small">{doc.story.reputation[k]}</div>
           </div>
-        ))}
+          <input type="range" min={0} max={400} value={doc.reputation[k]} onChange={e => update(d => ({ ...d, reputation: { ...d.reputation, [k]: repClamp(Number(e.target.value || 0)) } }))} />
+          <div className="small">{doc.reputation[k]}</div>
+        </div>
+      ))}
       </div>
     </div>
   );

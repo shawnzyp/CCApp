@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { CloudHero, HeroDoc, LocalCloudHero } from './models';
+import { normalizeHeroDoc } from './defaults';
 
 export type SyncState = {
   online: boolean;
@@ -37,16 +38,18 @@ export const useAppStore = create<AppState>((set, get) => ({
   setUid: (uid) => set({ uid }),
   setHero: (heroId, cloud) => {
     const localDirty = Boolean(cloud?.__local?.dirty);
+    const normalizedDoc = cloud?.doc ? normalizeHeroDoc(cloud.doc) : null;
+    const normalizedCloud = cloud ? { ...cloud, doc: normalizedDoc as HeroDoc } : null;
     set({
       heroId,
-      cloud,
-      doc: cloud?.doc ?? null,
+      cloud: normalizedCloud,
+      doc: normalizedDoc ?? null,
       sync: {
         ...get().sync,
         dirty: localDirty,
         lastError: null,
-        lastSavedRev: cloud?.meta?.rev ?? null,
-        localSavedAt: cloud?.__local?.savedAt ?? null
+        lastSavedRev: normalizedCloud?.meta?.rev ?? null,
+        localSavedAt: normalizedCloud?.__local?.savedAt ?? null
       }
     });
   },

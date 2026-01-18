@@ -72,7 +72,7 @@ export default function HeroPicker() {
 
         <div className="row">
           <button className="ghost" onClick={() => fileRef.current?.click()}>
-            Import Legacy JSON
+            Import Legacy Autosave JSON
           </button>
           <input
             ref={fileRef}

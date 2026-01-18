@@ -54,6 +54,34 @@ export default function CombatTab() {
         </div>
 
         <div className="panel">
+          <div style={{ fontWeight: 800, marginBottom: 8 }}>Initiative & Round</div>
+          <label>
+            Initiative Roll
+            <input type="number" value={c.initiative} onChange={e => update(d => ({ ...d, combat: { ...d.combat, initiative: Number(e.target.value || 0) } }))} />
+          </label>
+          <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontWeight: 700 }}>Round {c.round}</div>
+            <div className="row">
+              <button className="ghost" onClick={() => update(d => ({ ...d, combat: { ...d.combat, round: Math.max(1, (d.combat.round ?? 1) - 1) } }))}>-1</button>
+              <button
+                className="primary"
+                onClick={() => update(d => ({
+                  ...d,
+                  combat: {
+                    ...d.combat,
+                    round: (d.combat.round ?? 1) + 1,
+                    sp: { ...d.combat.sp, current: d.combat.sp.max + d.combat.sp.temp }
+                  }
+                }))}
+              >
+                Next Round
+              </button>
+            </div>
+          </div>
+          <div className="small">Advancing the round auto-refills SP to max.</div>
+        </div>
+
+        <div className="panel">
           <div style={{ fontWeight: 800, marginBottom: 8 }}>Death Saves</div>
           <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
             <label>

@@ -5,12 +5,14 @@ import { scheduleCloudPush, scheduleLocalSave } from '../state/syncEngine';
 import type { PowerCard } from '../state/models';
 import { abilityMod, clamp } from '../lib/math';
 
+type CardKind = 'power' | 'signature';
+
 export default function PowersTab() {
   const doc = useAppStore(s => s.doc);
   const setDoc = useAppStore(s => s.setDoc);
   const markDirty = useAppStore(s => s.markDirty);
 
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<{ id: string; kind: CardKind } | null>(null);
 
   const update = (fn: (d: NonNullable<typeof doc>) => NonNullable<typeof doc>) => {
     setDoc(fn);
@@ -21,15 +23,24 @@ export default function PowersTab() {
 
   if (!doc) return <div className="panel">Open or create a hero first.</div>;
 
-  const cards = doc.powers;
-  const current = useMemo(() => cards.find(c => c.id === selected) ?? null, [cards, selected]);
+  const powers = doc.powers;
+  const signatures = doc.signatures;
+  const current = useMemo(() => {
+    if (!selected) return null;
+    const list = selected.kind === 'signature' ? signatures : powers;
+    return list.find(c => c.id === selected.id) ?? null;
+  }, [powers, signatures, selected]);
 
   const upsert = (patch: Partial<PowerCard>) => {
-    if (!current) return;
-    update(d => ({
-      ...d,
-      powers: d.powers.map(p => p.id === current.id ? { ...p, ...patch } : p)
-    }));
+    if (!current || !selected) return;
+    update(d => {
+      const key = selected.kind === 'signature' ? 'signatures' : 'powers';
+      const list = (d as any)[key] as PowerCard[];
+      return {
+        ...d,
+        [key]: list.map(p => p.id === current.id ? { ...p, ...patch } : p)
+      };
+    });
   };
 
   const statMod = (stat: string | undefined) => {
@@ -63,13 +74,16 @@ export default function PowersTab() {
       uses: 'At-will',
       description: ''
     };
-    update(d => ({ ...d, powers: [card, ...d.powers] }));
-    setSelected(id);
+    const key = signature ? 'signatures' : 'powers';
+    update(d => ({ ...d, [key]: [card, ...(d as any)[key]] }));
+    setSelected({ id, kind: signature ? 'signature' : 'power' });
   };
 
   const remove = () => {
     if (!current) return;
-    update(d => ({ ...d, powers: d.powers.filter(p => p.id !== current.id) }));
+    if (!selected) return;
+    const key = selected.kind === 'signature' ? 'signatures' : 'powers';
+    update(d => ({ ...d, [key]: (d as any)[key].filter((p: PowerCard) => p.id !== current.id) }));
     setSelected(null);
   };
 
@@ -101,18 +115,35 @@ export default function PowersTab() {
         <div className="panel">
           <div style={{ fontWeight: 800, marginBottom: 8 }}>Cards</div>
           <div style={{ display: 'grid', gap: 6 }}>
-            {cards.map(c => (
+            <div className="small" style={{ textTransform: 'uppercase', letterSpacing: 1 }}>Signatures</div>
+            {signatures.map(c => (
               <button
                 key={c.id}
-                className={c.id === selected ? 'tabBtn active' : 'tabBtn'}
+                className={selected?.id === c.id && selected.kind === 'signature' ? 'tabBtn active' : 'tabBtn'}
                 style={{ textAlign: 'left' }}
-                onClick={() => setSelected(c.id)}
+                onClick={() => setSelected({ id: c.id, kind: 'signature' })}
               >
                 <div style={{ fontWeight: 700 }}>{c.name}</div>
-                <div className="small">{c.signature ? 'Signature' : 'Power'} | {c.actionType ?? ''} | Cost {c.spCost ?? 0} SP</div>
+                <div className="small">Signature | {c.actionType ?? ''} | Cost {c.spCost ?? 0} SP</div>
               </button>
             ))}
-            {cards.length === 0 ? <div className="small">No powers yet.</div> : null}
+            {signatures.length === 0 ? <div className="small">No signature moves yet.</div> : null}
+
+            <hr />
+
+            <div className="small" style={{ textTransform: 'uppercase', letterSpacing: 1 }}>Powers</div>
+            {powers.map(c => (
+              <button
+                key={c.id}
+                className={selected?.id === c.id && selected.kind === 'power' ? 'tabBtn active' : 'tabBtn'}
+                style={{ textAlign: 'left' }}
+                onClick={() => setSelected({ id: c.id, kind: 'power' })}
+              >
+                <div style={{ fontWeight: 700 }}>{c.name}</div>
+                <div className="small">Power | {c.actionType ?? ''} | Cost {c.spCost ?? 0} SP</div>
+              </button>
+            ))}
+            {powers.length === 0 ? <div className="small">No powers yet.</div> : null}
           </div>
         </div>
 
@@ -122,7 +153,7 @@ export default function PowersTab() {
           ) : (
             <>
               <div className="row" style={{ justifyContent: 'space-between' }}>
-                <div style={{ fontWeight: 800 }}>{current.signature ? 'Signature Move' : 'Power'}</div>
+                <div style={{ fontWeight: 800 }}>{selected?.kind === 'signature' ? 'Signature Move' : 'Power'}</div>
                 <button className="ghost" onClick={remove}>Delete</button>
               </div>
 
