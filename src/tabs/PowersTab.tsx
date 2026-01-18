@@ -3,6 +3,7 @@ import { useAppStore } from '../state/store';
 import { uuid } from '../lib/ids';
 import { scheduleCloudPush, scheduleLocalSave } from '../state/syncEngine';
 import type { PowerCard } from '../state/models';
+import { abilityMod, clamp } from '../lib/math';
 
 export default function PowersTab() {
   const doc = useAppStore(s => s.doc);
@@ -29,6 +30,20 @@ export default function PowersTab() {
       ...d,
       powers: d.powers.map(p => p.id === current.id ? { ...p, ...patch } : p)
     }));
+  };
+
+  const statMod = (stat: string | undefined) => {
+    if (!stat) return 0;
+    const key = stat.toLowerCase() as keyof typeof doc.stats;
+    if (key in doc.stats) {
+      return abilityMod(doc.stats[key]);
+    }
+    return 0;
+  };
+
+  const computedDc = (card: PowerCard) => {
+    const mod = statMod(card.saveAbilityTarget);
+    return 8 + mod + doc.progression.profBonus;
   };
 
   const addNew = (signature: boolean) => {
@@ -151,11 +166,32 @@ export default function PowersTab() {
                 </label>
                 <label>
                   Save DC
-                  <input type="number" value={current.saveDC ?? 0} onChange={e => upsert({ saveDC: Number(e.target.value || 0) })} />
+                  <input
+                    type="number"
+                    value={current.autoDC ? computedDc(current) : (current.saveDC ?? 0)}
+                    onChange={e => upsert({ saveDC: Number(e.target.value || 0) })}
+                    disabled={!!current.autoDC}
+                  />
+                </label>
+                <label>
+                  Auto DC (8 + stat mod + prof)
+                  <input
+                    type="checkbox"
+                    checked={!!current.autoDC}
+                    onChange={e => upsert({ autoDC: e.target.checked, saveDC: e.target.checked ? computedDc(current) : current.saveDC })}
+                  />
                 </label>
                 <label>
                   Cooldown (rounds)
                   <input type="number" value={current.cooldown ?? 0} onChange={e => upsert({ cooldown: Number(e.target.value || 0) })} />
+                </label>
+                <label>
+                  Ultimate cooldown (rounds)
+                  <div className="row">
+                    <input type="number" value={current.ultimateCooldown ?? 0} onChange={e => upsert({ ultimateCooldown: Number(e.target.value || 0) })} />
+                    <button className="ghost" onClick={() => upsert({ ultimateCooldown: 10 })}>Start 10</button>
+                    <button className="ghost" onClick={() => upsert({ ultimateCooldown: clamp((current.ultimateCooldown ?? 0) - 1, 0, 10) })}>-1</button>
+                  </div>
                 </label>
                 <label>
                   Concentration

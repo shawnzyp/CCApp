@@ -27,9 +27,11 @@ export type PowerCard = {
   requiresSave?: boolean;
   saveAbilityTarget?: string;
   saveDC?: number;
+  autoDC?: boolean;
 
   concentration?: boolean;
   cooldown?: number;
+  ultimateCooldown?: number;
 
   damage?: DamageBlock;
   description?: string;
@@ -137,4 +139,13 @@ export type CloudMeta = {
 export type CloudHero = {
   meta: CloudMeta;
   doc: HeroDoc;
+};
+
+export type LocalMeta = {
+  dirty: boolean;
+  savedAt: number;
+};
+
+export type LocalCloudHero = CloudHero & {
+  __local?: LocalMeta;
 };

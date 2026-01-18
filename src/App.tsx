@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import HeaderBar from './components/HeaderBar';
 import HeroPicker from './components/HeroPicker';
+import ConflictModal from './components/ConflictModal';
 import CombatTab from './tabs/CombatTab';
 import AbilitiesTab from './tabs/AbilitiesTab';
 import PowersTab from './tabs/PowersTab';
@@ -51,6 +52,7 @@ export default function App() {
 
   return (
     <div className="container">
+      <ConflictModal />
       <HeaderBar />
       <HeroPicker />
 

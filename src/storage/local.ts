@@ -1,13 +1,13 @@
 import { get, set, del, keys } from 'idb-keyval';
-import type { CloudHero } from '../state/models';
+import type { LocalCloudHero } from '../state/models';
 
 const KEY_PREFIX = 'cct:';
 
-export async function saveLocalHero(uid: string, heroId: string, data: CloudHero) {
+export async function saveLocalHero(uid: string, heroId: string, data: LocalCloudHero) {
   await set(`${KEY_PREFIX}${uid}:hero:${heroId}`, data);
 }
 
-export async function loadLocalHero(uid: string, heroId: string): Promise<CloudHero | null> {
+export async function loadLocalHero(uid: string, heroId: string): Promise<LocalCloudHero | null> {
   return (await get(`${KEY_PREFIX}${uid}:hero:${heroId}`)) ?? null;
 }
 
