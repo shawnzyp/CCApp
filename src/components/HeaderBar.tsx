@@ -7,9 +7,10 @@ export default function HeaderBar() {
   const uid = useAppStore(s => s.uid);
   const heroId = useAppStore(s => s.heroId);
   const sync = useAppStore(s => s.sync);
+  const conflict = useAppStore(s => s.conflict);
 
-  const status = !uid ? 'Signed out' : !sync.online ? 'Offline' : sync.dirty ? 'Unsaved changes' : 'Saved';
-  const cls = !uid ? 'badge' : !sync.online ? 'badge warn' : sync.dirty ? 'badge warn' : 'badge ok';
+  const status = !uid ? 'Signed out' : conflict ? 'Conflict' : !sync.online ? 'Offline' : sync.dirty ? 'Unsaved changes' : 'Saved';
+  const cls = !uid ? 'badge' : conflict ? 'badge danger' : !sync.online ? 'badge warn' : sync.dirty ? 'badge warn' : 'badge ok';
 
   return (
     <div className="header">
@@ -22,7 +23,7 @@ export default function HeaderBar() {
       <div className="row">
         {uid ? (
           <>
-            <button className="ghost" onClick={() => manualSave('manual')} disabled={!heroId}>
+            <button className="ghost" onClick={() => manualSave('manual')} disabled={!heroId || !!conflict}>
               Save
             </button>
             <button className="ghost" onClick={() => logout()}>Sign out</button>

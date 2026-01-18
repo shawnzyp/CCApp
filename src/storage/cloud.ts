@@ -38,3 +38,35 @@ export async function pushCloudHero(args: {
   await update(root, updates);
   return rev;
 }
+
+export type SnapshotEntry = {
+  id: string;
+  savedAt: number;
+  reason: 'autosave' | 'manual' | 'snapshot';
+  doc: HeroDoc;
+};
+
+function normalizeTimestamp(value: unknown) {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    if (!Number.isNaN(parsed)) return parsed;
+  }
+  if (typeof value === 'object' && value && 'seconds' in value) {
+    const seconds = (value as { seconds?: number }).seconds;
+    if (typeof seconds === 'number') return seconds * 1000;
+  }
+  return 0;
+}
+
+export async function fetchHeroSnapshots(uid: string, heroId: string): Promise<SnapshotEntry[]> {
+  const snap = await get(ref(db, `${heroPath(uid, heroId)}/snapshots`));
+  if (!snap.exists()) return [];
+  const val = snap.val() as Record<string, { savedAt: unknown; reason: SnapshotEntry['reason']; doc: HeroDoc }>;
+  return Object.entries(val).map(([id, entry]) => ({
+    id,
+    savedAt: normalizeTimestamp(entry.savedAt),
+    reason: entry.reason,
+    doc: entry.doc
+  }));
+}
